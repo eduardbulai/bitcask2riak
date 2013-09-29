@@ -1,0 +1,9 @@
+== Bitcask to Riak mover ==
+
+This project is meant to take bitcask folders and recursively insert data from the files into a Riak server.
+
+== Installing ==
+
+Clone this repository, cd into the folder and run bundle install to fetch the required gems.
+
+Afterwards just run rakup in the folder and the app should be up and running on port 65480
