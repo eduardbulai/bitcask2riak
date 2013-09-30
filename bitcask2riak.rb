@@ -29,15 +29,20 @@ class Bitcask2Riak < Sinatra::Application
       sep1 = "\x01{\\\""
       sep2 = "}\x00\x00\x00"
       b.data_files.each do |data_file|
-        data_file.each do |entry|
-          next if entry.value == Bitcask::TOMBSTONE
-          # Get Data
-          key_decode = BERT.decode(entry.key)       
-          bucket = key_decode[0]
-          key = key_decode[1]
-
-          value = "{\"" + entry.value[/#{sep1}(.*?)#{sep2}/m, 1] + "}"
-          RiakWorker.perform_async(bucket, key, value)
+        if data_file.count > 0 
+          data_file.each do |entry|
+            next if entry.value == Bitcask::TOMBSTONE
+            # Get Data
+            key_decode = BERT.decode(entry.key)       
+            bucket = key_decode[0]
+            key = key_decode[1]
+            begin
+              value = BERT.decode(entry.value).last
+            rescue
+              value = "{\"" + entry.value[/#{sep1}(.*?)#{sep2}/m, 1].to_s + "}"
+            end
+            RiakWorker.perform_async(bucket, key, value)
+          end
         end
       end
     end
@@ -51,8 +56,8 @@ class Bitcask2Riak < Sinatra::Application
       # Retrieve a bucket
       # Create a client interface
       client = Riak::Client.new(:nodes => [
-        {:host => '192.168.37.57', :pb_port => 8087}
-      ])
+        {:host => '192.168.37.57', :pb_port => 8087}],
+        :protocol => 'pbc')
       bucket = client.bucket(bucket)  # a Riak::Bucket
 
       # Create a new object
