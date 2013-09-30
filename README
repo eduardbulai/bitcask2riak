@@ -1,15 +1,24 @@
 == Bitcask to Riak mover ==
-
 This project is meant to take bitcask folders and recursively insert data from the files into a Riak server.
 
-== Installing ==
 
+== Installing ==
 Clone this repository, cd into the folder and run bundle install to fetch the required gems.
 
 Afterwards just run rackup in the folder and the app should be up and running on port 65480
+
 
 == Installing by commands ==
 git clone GIT.URL
 cd ./bitcask2riak
 bundle install
 sudo apt-get install redis-server
+
+# Start workers for reading bitcask files
+sidekiq -r ./bitcask2riak.rb -q delegators
+
+# Start workers for Riak Bitcask Inserts
+sidekiq -r ./bitcask2riak.rb -q heavy
+
+Open web interface
+Start
