@@ -1,0 +1,10 @@
+redis:
+  url: 'redis://127.0.0.1:6379/bk2riak'
+  namespace: 'bitcask2riak'
+
+riak:
+  hosts:
+    - address: '127.0.0.1'
+      http_port: '8098'
+      pb_port: '8087'
+  protocol: pbc
