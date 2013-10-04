@@ -1,9 +1,14 @@
+GIT
+  remote: git://github.com/edgurgel/bert.git
+  revision: d16e39fad06c378b7fa5c53477846790291d448f
+  specs:
+    bert (1.1.6)
+
 GEM
   remote: https://rubygems.org/
   specs:
     awesome_print (1.2.0)
     beefcake (0.3.7)
-    bert (1.1.6)
     bitcask (0.2.2)
     builder (3.2.2)
     celluloid (0.15.1)
@@ -45,7 +50,7 @@ PLATFORMS
 
 DEPENDENCIES
   awesome_print
-  bert
+  bert!
   bitcask
   redis
   riak-client
