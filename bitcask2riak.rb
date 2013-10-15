@@ -11,9 +11,7 @@ require 'yaml'
 class Bitcask2Riak < Sinatra::Application
 
   $config = YAML.load_file('./config/config.yaml')
-  # to change the redis server just run this in the terminal
-  # export REDIS_URL='redis://host:port'
-
+  
   Sidekiq.configure_server do |config|
     config.server_middleware do |chain|
       chain.add Sidekiq::Middleware::Server::UniqueJobs
@@ -25,8 +23,6 @@ class Bitcask2Riak < Sinatra::Application
     config.redis = { :url => $config['redis']['url'], :namespace => $config['redis']['namespace'] }
   end
 
-  #$redis = Redis.new({:url => $config['redis']['url'], :namespace => $config['redis']['namespace']})
-
   class BitcaskWorker
     include Sidekiq::Worker
     sidekiq_options :retry => 100, :queue => :delegators
@@ -34,16 +30,13 @@ class Bitcask2Riak < Sinatra::Application
     def perform(folder)
       b = Bitcask.new folder
       b.load
-      sep1 = "\x01{\\\""
-      sep2 = "}\x00\x00\x00"
       b.data_files.each do |data_file|
         if data_file.count > 0 
           stats = Sidekiq::Stats.new
-          ap stats.enqueued
           data_file.each do |entry|
-            unless stats.enqueued.to_i < 10000
+            unless stats.enqueued.to_i < $config['limits']['threshold']
               puts "Too much jobs. Sleeping for 60 seconds...\r\n"
-              sleep 60
+              sleep $config['limits']['sleep']
               redo  
             else
               next if entry.value == Bitcask::TOMBSTONE
@@ -64,14 +57,12 @@ class Bitcask2Riak < Sinatra::Application
   class RiakWorker
     include Sidekiq::Worker
     sidekiq_options :retry => 20, :queue => :heavy
-    sidekiq_options({unique: :all, expiration: 24 * 60 * 60})
+    sidekiq_options({unique: :all, expiration: 7 * 24 * 60 * 60})
 
     def perform(bucket, key, val)
       # Retrieve a bucket
       # Create a client interface
-      client = Riak::Client.new(:nodes => [
-        {:host => '192.168.37.57', :pb_port => 8087}],
-        :protocol => 'pbc')
+      client = Riak::Client.new($config['riak'])
       bucket = client.bucket(bucket)  # a Riak::Bucket
 
       # Create a new object

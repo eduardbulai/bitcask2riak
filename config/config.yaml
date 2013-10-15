@@ -1,10 +1,27 @@
+auth:
+  user: 'admin'
+  pass: 'superpassword'
+  
+server:
+  port: 1337
+
 redis:
-  url: 'redis://127.0.0.1:6379/bk2riak'
+  url: 'redis://10.1.2.68:6379/bk2riak' # The url must be of the form redis://<host>:<port>/<database_name>
   namespace: 'bitcask2riak'
 
 riak:
-  hosts:
-    - address: '127.0.0.1'
-      http_port: '8098'
-      pb_port: '8087'
-  protocol: pbc
+  :nodes:
+    - :host: '10.1.2.61'
+      :http_port: '8098'
+      :pb_port: '8087'
+    - :host: '10.1.2.62'
+      :http_port: '8098'
+      :pb_port: '8087'
+    - :host: '10.1.2.63'
+      :http_port: '8098'
+      :pb_port: '8087'
+  :protocol: pbc
+  
+limits:
+  threshold: 100000 # Wait for the Sidekiq queue to be < threshold so that we don't overload redis
+  sleep: 60 # Time to sleep until retrying to queue new jobs in Sidekiq if number of enqueued jobs in Sidekiq >= threshold
