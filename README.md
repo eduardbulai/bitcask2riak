@@ -11,6 +11,7 @@ Installing
 * Start some sidekiq workers (I highly recommend spawning separate workers for the 2 queues that are handling the migration: 'delegators' and 'heavy'). Eg: 
 ```
 sidekiq -r ./bitcask2riak.rb -q delegators -c 5 # I usually spawn < 10 'delegators' workers otherwise my I/O is ridiculous. These are the workers responsible for reading the Bitcask files and enqueuing (bucket,key,value) jobs
+
 sidekiq -r ./bitcask2riak.rb -q heavy -c 100 # I usually spawn 500 'heavy' workers but this depends on your hardware and network configuration
 ```
 * Watch the magic happen in the sidekiq web UI (http://<ip>:<port>/sidekiq)
